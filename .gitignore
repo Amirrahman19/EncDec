@@ -1,0 +1,13 @@
+# build output (StegoTool.exe is ~250 MB; GitHub rejects files >100 MB. Use GitHub Releases for it.)
+dist/
+build/
+*.spec
+__pycache__/
+*.pyc
+*.log
+
+# hub runtime data (SQLite DB with users/messages)
+hub/data/
+*.db
+*.db-wal
+*.db-shm

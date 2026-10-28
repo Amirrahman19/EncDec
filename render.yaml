@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: stego-hub
+    runtime: python
+    plan: free
+    rootDir: hub            # the app lives in hub/ inside this repo
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app:app --host 0.0.0.0 --port $PORT --proxy-headers --forwarded-allow-ips="*"
+    healthCheckPath: /
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: ADMIN_USER
+        value: admin
+      - key: ADMIN_PASSWORD
+        sync: false         # you'll be asked for this in the Render dashboard
