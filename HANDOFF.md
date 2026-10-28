@@ -1,40 +1,54 @@
-# HANDOFF — Cybersecurity
+# HANDOFF — EncDec
 
-_Last updated: 2026-10-28 · by: backfill script (reconstructed; refresh on first real session)_
+_Last updated: 2026-10-28 (project moved to EncDec; push-ready, not yet pushed or deployed)_
 
 ## Status in one paragraph
-Current state per last recorded session: see 'Verified / Not verified' and B&A.md. Baseline before Claude work: Empty directory (2026-10-17).
+Project lives at `C:\Users\Amir Rahman\Documents\GitHub\EncDec` (git repo, branch `main`, no commits yet). The desktop app has AES-256-GCM password encryption plus a Text<->Cipher tool; the phone web app matches it byte-for-byte; `hub/` is a login-protected end-to-end hub (FastAPI) tested locally. The repo is push-ready: root `.gitignore` (excludes `dist/` and the DB) and `render.yaml` at the root (rootDir hub). The user will push to GitHub and deploy on Render themselves.
 
 ## How to run / build / test
-Hub: in `hub/` with env `stego`: `uvicorn app:app --port 8000`, open http://localhost:8000, user `admin`. Tools: see per-folder `gui.py`; exe `dist/StegoTool.exe`.
+```
+conda env: stego  (C:\Users\Amir Rahman\anaconda3\envs\stego\python.exe)
+Desktop:  python stego_app.py
+Exe:      see README.md (PyInstaller command); output dist/StegoTool.exe (git-ignored)
+Hub:      cd hub; pip install -r requirements.txt; set ADMIN_PASSWORD; uvicorn app:app --port 8000
+          open http://localhost:8000, log in as admin, add users in the Admin tab
+Render:   New > Blueprint > pick repo (render.yaml at root); set ADMIN_PASSWORD
+```
 
 ## Where things are
-- Root: `C:\Users\Amir Rahman\Desktop\Knowledge Hub\Projects\Cybersecurity`
-- Top level: `README.md`, `android_webapp/`, `assets/`, `combined_gui/`, `environment.yml`, `hub/`, `img_in_audio/`, `img_in_video/`, `msg_in_audio/`, `msg_in_image/`, `msg_in_video/`, `stego_app.py`
-- Manifests: environment.yml
-- Not a git repository (no version history).
+| Path | What |
+|---|---|
+| `stego_app.py` | Desktop GUI + all encode/decode + encryption (single file, PyInstaller-ready) |
+| `android_webapp/` | Single-file offline phone web app (needs file:// or https for encryption) |
+| `hub/app.py` | FastAPI server: auth, admin, drops, websocket chat relay (SQLite) |
+| `hub/static/` | `stego.js` (stego + crypto, shared with phone app), `app.js` (UI), css/html |
+| `render.yaml`, `.gitignore` | Deploy blueprint and ignores (repo root) |
+| `msg_in_*`, `img_in_*`, `combined_gui/` | Older per-tool folders; no encryption, kept as-is |
 
-## Decisions in force
-- One folder per tool pair (user)
-- Separate encoder/decoder exes (user)
-- Hosted private hub with credentials (user idea, built)
-- Do not deploy now (user)
+## Decisions in force (and why)
+- End-to-end: all crypto in the browser; server stores ciphertext only (user choice)
+- Accounts admin-created, no signup (user choice)
+- Ephemeral SQLite on Render free tier is acceptable for testing (user choice)
+- Encrypted blob format `SGE1 | salt16 | nonce12 | ct+tag`, PBKDF2-SHA256 200k, AES-256-GCM; shared by Python and JS
+- `dist/` git-ignored: exe is ~246 MB, over GitHub's 100 MB limit
 
-## Known problems & mistakes to avoid
-- WhatsApp photo picker recompresses images and wipes LSB data — send as Document/File (not a code bug)
-- Android Chrome blocks blob: downloads from file:// pages — switched to data: URIs
+## Known problems / mistakes to avoid
+- WhatsApp "Photo" sending recompresses images and destroys hidden data: send as Document/File
+- WebCrypto needs a secure context: https, localhost or file://; plain http on a LAN IP fails
+- requestAnimationFrame never fires in background tabs: use setTimeout (already fixed)
+- Canvas premultiplied alpha corrupts LSBs: composite on opaque white first (already fixed)
+- The SessionStart hook can overwrite MVP/HANDOFF/B&A with stubs if they look unfilled: check before editing
+- Old per-tool folders and `combined_gui/` do not support passwords
 
-## Verified / Not verified
-**Not verified:**
-- Hub in production; mobile on many devices
-
-## Open questions
-- Confirm the reconstructed MVP with the user.
+## Not verified
+- Hub on Render/https and on real phones; websockets behind Render's proxy
+- Exe not re-run after the folder move
+- Video in hub/phone (not supported)
 
 ## Next actions (ordered)
-1. git init → GitHub → Render per hub/README.md when the user asks
+1. User: commit and push to GitHub; Render > New > Blueprint; set ADMIN_PASSWORD
+2. After deploy: create users in the Admin tab; test drops and chat from two phones over https
+3. Optional: persistent storage, GitHub Release for the exe
 
 ## Read first
-- `MVP.md`, `B&A.md`
-- Memory record: `Claude Vault\Memory\Log - Software and Data Projects.md` (see the project record)
-- `Claude Vault\Agent Harness\README.md` (skills), `Claude Vault\Memory\README.md`
+- MVP.md, B&A.md, hub/README.md
